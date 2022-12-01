@@ -75,21 +75,47 @@ public class TestMessageResourceController extends AbstractApiTest {
                 .andExpect(jsonPath("items.size()").value(0));
     }
 
+    // Проверяем что добавляется запись в таблицу message_star по пути api/user/message/star
+    // выполняем запрос к end point  - mvc perform
+    // необходимо сделать запрос в бд и проверить что запись была добавлена - мы используем messageById, assert not null
+    // проверить что запись в таблице по завершению удаляется
     @Test
     @Sql(value = {"/script/messageResourceController/addMessageStar/Before.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/script/messageResourceController/addMessageStar/After.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void addMessageStarTest() throws Exception {
-        String access_token = getJwtToken("vasya@mail.ru", "password");
-        mvc.perform(post("/localhost:8091/api/user/message/star/{id}")
-                .header("Authorization", access_token)
-                .param("id", "101"));
+        mvc.perform(post("/api/user/message/star/120")
+                .header("Authorization", getJwtToken("vasya@mail.ru", "password")))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
 
+    @Test
+    @Sql(value = {"/script/messageResourceController/addMessageStar/Before.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/script/messageResourceController/addMessageStar/After.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addMessageNotExist() throws Exception {
+        mvc.perform(post("/api/user/message/star/125")
+                        .header("Authorization", getJwtToken("vasya@mail.ru", "password")))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
     @Test
     @Sql(value = {"/script/messageResourceController/deleteStarMessageById/Before.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/script/messageResourceController/addMessageStar/After.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void deleteStarMessageByIdTest() throws Exception {
-        mvc.perform(delete("/localhost:8091/api/user/message/{id}/star"));
+        mvc.perform(delete("/api/user/message/120/star")
+                .header("Authorization", getJwtToken("vasya@mail.ru", "password")))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @Sql(value = {"/script/messageResourceController/deleteStarMessageById/Before.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/script/messageResourceController/addMessageStar/After.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void deleteNotExistStarMessage() throws Exception {
+        mvc.perform(delete("/api/user/message/121/star")
+                        .header("Authorization", getJwtToken("vasya@mail.ru", "password")))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 }
