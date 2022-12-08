@@ -83,10 +83,14 @@ public class TestMessageResourceController extends AbstractApiTest {
     @Sql(value = {"/script/messageResourceController/addMessageStar/Before.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/script/messageResourceController/addMessageStar/After.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void addMessageStarTest() throws Exception {
+        // Убеждаемся что такой записи не существует.
+        Assertions.assertNull(em.find(MessageStar.class, 1L), "Пользователь с таким сообщением уже существует!");
         mvc.perform(post("/api/user/message/star/120")
                 .header("Authorization", getJwtToken("vasya@mail.ru", "password")))
                 .andDo(print())
                 .andExpect(status().isOk());
+        // Проверяем что запись добавлена.
+        Assertions.assertNotNull(em.find(MessageStar.class, 1L));
     }
 
     @Test
